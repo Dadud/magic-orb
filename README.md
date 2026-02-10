@@ -11,7 +11,11 @@ A portable, round-display voice node for OpenClaw + Home Assistant.
 - Initialize display
 - Initialize ESP-AT UART link
 - Show on-device status
-- Keep MicroPython test path (`test_display.py`, `test_complete.py`) as the active validation workflow
+- Keep a 3-stage MicroPython validation path:
+  - Stage A: `test_display.py` (display-only)
+  - Stage B: `test_esp_at_uart.py` (ESP-AT UART-only)
+  - Stage C: `test_complete.py` (combined display + WiFi HTTP)
+- Require Stage A + Stage B pass before Stage C
 
 ### Deferred (kept, but not stabilized in Phase 0)
 - CircuitPython runtime path (`code.py`, `code_minimal.py`, `lib/display.py`, `lib/wifi_at.py`) is now **experimental / reference-only**
@@ -53,6 +57,15 @@ ESP32 (UART0):
   RX = GP1  <- ESP32 TX
 ```
 
+
+## Phase 0 validation order
+
+1. Run **Stage A** (`test_display.py`).
+2. Run **Stage B** (`test_esp_at_uart.py`).
+3. Run **Stage C** (`test_complete.py`) only after A and B pass.
+
+Failure signatures are documented in `TESTING.md` and mirrored in script banners for operator clarity.
+
 ## Project Structure
 
 ```text
@@ -68,8 +81,12 @@ magic-orb/
 │   ├── st77916.py      # Experimental display/runtime path
 │   ├── wifi_at.py      # Experimental CircuitPython ESP-AT path
 │   └── display.py      # Experimental CircuitPython UI helpers
-├── test_display.py     # MicroPython display test
-└── test_complete.py    # MicroPython display + WiFi test
+├── test_display.py     # Stage A canonical test (display-only)
+├── test_esp_at_uart.py # Stage B canonical test (ESP-AT UART-only)
+├── test_complete.py    # Stage C canonical test (display + WiFi HTTP)
+├── quick_test.py       # Legacy reference only (not acceptance)
+├── simple_test.py      # Legacy reference only (not acceptance)
+└── all_in_one_test.py  # Legacy reference only (not acceptance)
 ```
 
 ## Resources

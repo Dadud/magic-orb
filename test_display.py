@@ -1,5 +1,5 @@
-# Magic Orb - Display Test
-# Tests the round 360x360 display
+"""Stage A canonical validation: display-only path."""
+import sys
 import time
 
 from hardware_profile import (
@@ -10,61 +10,48 @@ from hardware_profile import (
     DISPLAY_DRIVER_STATUS,
 )
 
-import sys
 sys.path.append('/lib')
 from st77916 import ST77916
 
-print("🔮 Magic Orb - Display Test")
-print("=" * 30)
+print("🔮 Magic Orb - Stage A (Display-Only)")
+print("=" * 44)
+print("Canonical script: test_display.py")
 print(f"Board: {BOARD_NAME}")
 print(f"Display: {DISPLAY_CONTROLLER} over {DISPLAY_BUS_TYPE}")
 print(f"Driver: {DISPLAY_DRIVER} ({DISPLAY_DRIVER_STATUS})")
+print("Failure signature if display does not init: display init timeout")
 
-print("\nInitializing display...")
+print("\n[Stage A] Initializing display...")
+start_ms = time.ticks_ms()
 display = ST77916()
-print("✓ Display initialized!")
+elapsed_ms = time.ticks_diff(time.ticks_ms(), start_ms)
 
-# Test: Fill with colors
-print("\nTest 1: Fill screen with colors...")
-colors = [
+if elapsed_ms > 5000:
+    raise RuntimeError(f"display init timeout: {elapsed_ms}ms")
+
+print(f"✓ Display initialized in {elapsed_ms}ms")
+
+print("\n[Stage A] Rendering color sweep...")
+for color, name in [
     (display.RED, "RED"),
     (display.GREEN, "GREEN"),
     (display.BLUE, "BLUE"),
     (display.WHITE, "WHITE"),
     (display.BLACK, "BLACK"),
-]
-
-for color, name in colors:
-    print(f"  Filling {name}...")
+]:
+    print(f"  -> {name}")
     display.fill(color)
     display.show()
-    time.sleep(0.5)
+    time.sleep(0.35)
 
-# Test: Draw text
-print("\nTest 2: Drawing text...")
+print("\n[Stage A] Rendering text + geometry...")
 display.fill(display.BLACK)
-display.text("Magic Orb", 120, 170, display.CYAN)
-display.text("Ready!", 140, 200, display.WHITE)
-display.show()
-time.sleep(2)
-
-# Test: Draw shapes
-print("\nTest 3: Drawing shapes...")
-display.fill(display.BLACK)
-center_x = 180
-center_y = 180
-for r in range(10, 150, 20):
-    color = display.CYAN if (r // 20) % 2 == 0 else display.MAGENTA
-    for angle in range(0, 360, 5):
-        import math
-        x = int(center_x + r * math.cos(math.radians(angle)))
-        y = int(center_y + r * math.sin(math.radians(angle)))
-        if 0 <= x < 360 and 0 <= y < 360:
-            display.pixel(x, y, color)
-
-display.text("Magic Orb", 130, 170, display.WHITE)
+display.text("Magic Orb", 120, 160, display.CYAN)
+display.text("Stage A PASS", 110, 190, display.WHITE)
+for step in range(0, 160, 8):
+    display.pixel(180 + step // 2, 180, display.MAGENTA)
+    display.pixel(180 - step // 2, 180, display.MAGENTA)
 display.show()
 
-print("\n✓ All tests passed!")
-print("Display is working correctly.")
-print("\nNext: Test WiFi with test_complete.py")
+print("\n✓ Stage A PASS")
+print("Proceed to Stage B only after visual checks match TESTING.md.")
