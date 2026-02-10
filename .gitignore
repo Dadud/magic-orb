@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# MicroPython
+*.mpy
+
+# Firmware builds
+*.elf
+*.hex
+*.map
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+secrets.py
+
+# Temp
+*.tmp
+*.bak
+*~
+
+# Archives
+*.zip
+*.tar.gz
