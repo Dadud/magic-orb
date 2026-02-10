@@ -110,6 +110,17 @@ Failure signatures:
 
 ---
 
+
+## Stabilization soak gate (CircuitPython reference shell)
+
+When using the experimental CircuitPython shell (`code.py` -> `app_stable.py`), Phase 1 feature development is gated by soak stability:
+
+- Run continuously for target soak duration (recommended 24h).
+- Confirm repeated heartbeat logs continue at expected interval.
+- Confirm watchdog check recovers WiFi if disconnected.
+- If `SECRETS["ping_url"]` is configured, confirm periodic HTTP ping remains in healthy status range.
+- No unrecovered lockups/reboots during the soak window.
+
 ## Canonical-vs-legacy note
 
 To reduce operator confusion, only the three stage scripts above are primary validation artifacts.
