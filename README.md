@@ -2,123 +2,78 @@
 
 A portable, round-display voice node for OpenClaw + Home Assistant.
 
+## Runtime decision (Phase 0)
+
+**Selected target runtime: MicroPython.**
+
+### In scope for stabilization
+- Boot with a **single canonical entrypoint**: `main.py`
+- Initialize display
+- Initialize ESP-AT UART link
+- Show on-device status
+- Keep MicroPython test path (`test_display.py`, `test_complete.py`) as the active validation workflow
+
+### Deferred (kept, but not stabilized in Phase 0)
+- CircuitPython runtime path (`code.py`, `code_minimal.py`, `lib/display.py`, `lib/wifi_at.py`) is now **experimental / reference-only**
+- Alternative display/runtime experiments (for example `lib/st77916.py`) remain in repo but are not part of the Phase 0 boot path
+
 ## Hardware
 
 - **Waveshare RP2350-Touch-LCD-1.85C** - Round 360x360 touchscreen
 - **ESP32-WROOM** - WiFi via ESP-AT (UART)
 - **Built-in:** Mic, speaker, 3.7V battery (BOX version)
 
-## Current Status
+## Canonical Phase 0 boot path
 
-### ✅ What Works
-- Hardware confirmed working (Waveshare C demo works)
-- Display lights up and responds
-- Basic pin configuration identified
+1. Flash `firmware/firmware.uf2` (MicroPython).
+2. Copy these files to the board:
+   - `main.py` (root)
+   - `lib/gc9a01.py` (`/lib`)
+3. Reboot.
 
-### 🚧 In Progress
-- MicroPython QSPI display driver (needs debugging)
-- WiFi connection via ESP-AT
-- PTT voice interface
+`main.py` intentionally does only:
+- display init,
+- ESP-AT UART init,
+- status rendering.
 
-### 📋 Planned
-- Voice interface with OpenClaw
-- "Hey Nova" wake word
-- Home Assistant dashboard
-- Meshtastic integration
+## Pin Configuration (current MicroPython baseline)
 
-## Architecture
+```text
+Display:
+  LCD_DC   = GP8
+  LCD_CS   = GP9
+  LCD_SCK  = GP10
+  LCD_MOSI = GP11
+  LCD_MISO = GP12
+  LCD_BL   = GP13
+  LCD_RST  = GP15
 
+ESP32 (UART0):
+  TX = GP0  -> ESP32 RX
+  RX = GP1  <- ESP32 TX
 ```
-┌─────────────────┐
-│   RP2350        │
-│  360x360 round  │    QSPI     ┌──────────┐
-│   ST77916 LCD   │◄───────────►│ ESP32    │
-│   + Touch       │    UART     │(ESP-AT)  │
-│   Mic + Speaker │             └────┬─────┘
-└─────────────────┘                  │ WiFi
-                                     ▼
-                              ┌──────────┐
-                              │ OpenClaw │
-                              │ Gateway  │
-                              └──────────┘
-```
-
-## Pin Configuration
-
-From Waveshare RP2350-Touch-LCD-1.85C demo:
-
-**Display (QSPI):**
-- SCLK = GP10
-- D0-D3 = GP11-14 (4-bit data)
-- CS = GP15
-- RST = GP16
-- TE = GP17
-- BL = GP24
-
-**ESP32 (UART0):**
-- TX = GP0 → ESP32 RX
-- RX = GP1 ← ESP32 TX
-
-## Getting Started
-
-### Option 1: Waveshare Demo (Working)
-```bash
-# Flash the working demo
-firmware/lcd_touch.uf2
-```
-
-### Option 2: MicroPython (Experimental)
-```bash
-# Flash MicroPython
-firmware/firmware.uf2
-
-# Copy drivers
-lib/st77916.py
-lib/wifi_at.py
-```
-
-See [INSTALL.md](INSTALL.md) for detailed steps.
 
 ## Project Structure
 
-```
+```text
 magic-orb/
-├── README.md           # This file
-├── INSTALL.md          # Installation guide
-├── ROADMAP.md          # Development plan
-├── TESTING.md          # Test procedures
+├── main.py             # Canonical MicroPython Phase 0 entrypoint
+├── README.md
+├── INSTALL.md
+├── TESTING.md
 ├── firmware/
-│   ├── firmware.uf2        # MicroPython
-│   └── lcd_touch.uf2       # Waveshare demo (working)
+│   └── firmware.uf2    # MicroPython firmware
 ├── lib/
-│   ├── st77916.py      # ST77916 QSPI driver
-│   ├── wifi_at.py      # ESP-AT WiFi driver
-│   └── display.py      # UI helpers
-├── test_display.py     # Display test
-├── test_complete.py    # Display + WiFi test
-└── simple_test.py      # Basic GPIO test
+│   ├── gc9a01.py       # MicroPython display driver
+│   ├── st77916.py      # Experimental display/runtime path
+│   ├── wifi_at.py      # Experimental CircuitPython ESP-AT path
+│   └── display.py      # Experimental CircuitPython UI helpers
+├── test_display.py     # MicroPython display test
+└── test_complete.py    # MicroPython display + WiFi test
 ```
-
-## Next Steps
-
-1. **Fix MicroPython QSPI driver** (or switch to C)
-2. **Verify WiFi via ESP-AT**
-3. **Implement PTT interface**
-4. **Connect to OpenClaw gateway**
-5. **Add wake word detection**
-6. **Build HA dashboard**
 
 ## Resources
 
 - [Waveshare Wiki](https://www.waveshare.com/wiki/RP2350-Touch-LCD-1.85C)
 - [Waveshare Demo Code](https://files.waveshare.com/wiki/RP2350-Touch-LCD-1.85C/RP2350-Touch-LCD-1.85C-Demo.zip)
 - [OpenClaw Docs](https://docs.openclaw.ai)
-
-## License
-
-TBD - Currently using Waveshare examples
-
----
-
-*Project started: 2026-02-10*
-*Status: Experimental - hardware confirmed, drivers in progress*

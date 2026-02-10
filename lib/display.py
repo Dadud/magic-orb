@@ -1,3 +1,4 @@
+# EXPERIMENTAL (NON-TARGET RUNTIME): CircuitPython display helpers kept for reference only.
 # Display utilities for round 360x360 LCD
 import displayio
 import terminalio
