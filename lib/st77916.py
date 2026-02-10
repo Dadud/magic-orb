@@ -22,10 +22,9 @@ LCD_BL   = 24
 @asm_pio(sideset_init=PIO.OUT_LOW, out_init=(PIO.OUT_LOW, PIO.OUT_LOW, PIO.OUT_LOW, PIO.OUT_LOW),
          out_shiftdir=PIO.SHIFT_RIGHT, autopull=True, pull_thresh=8)
 def qspi_prog():
-    side(0)    # Clock low
-    out(pins, 4)  [1]  # Output 4 bits
-    side(1)    # Clock high
-    nop()      [1]
+    # Toggle SCLK using sideset while shifting 4-bit nibbles on D0..D3.
+    out(pins, 4).side(0)  [1]  # Clock low, output nibble
+    nop().side(1)         [1]  # Clock high
 
 class ST77916(framebuf.FrameBuffer):
     """ST77916 360x360 round display with QSPI interface"""
@@ -196,13 +195,14 @@ class ST77916(framebuf.FrameBuffer):
     def show(self):
         """Display the framebuffer"""
         self._set_window(0, 0, self.width - 1, self.height - 1)
+
+        # ST77916 QSPI pixel stream header from Waveshare BSP:
+        # 0x32,0x00,0x2C,0x00 then 4-bit pixel payload while CS stays low.
         self.cs(0)
+        for b in (0x32, 0x00, 0x2C, 0x00):
+            self._write_byte_1bit(b)
 
-        # Write command for memory write (0x2C)
-        # In QSPI mode
-        self._write_cmd(0x2C)
-
-        # Send pixel data
+        # Send pixel data over 4-bit bus.
         self._write_bytes_4bit(self.buffer)
 
         self.cs(1)
