@@ -200,7 +200,7 @@ class ST77916(framebuf.FrameBuffer):
         # Start memory write (0x2C), but keep CS asserted while streaming pixels.
         self._write_cmd(0x2C, keep_cs=True)
 
-        # Send pixel data
+        # Send pixel data over 4-bit bus.
         self._write_bytes_4bit(self.buffer)
 
         self.cs(1)
