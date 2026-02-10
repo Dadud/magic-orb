@@ -20,6 +20,24 @@ A portable, round-display voice node for OpenClaw + Home Assistant.
 ### Deferred (kept, but not stabilized in Phase 0)
 - CircuitPython runtime path (`code.py`, `code_minimal.py`, `lib/display.py`, `lib/wifi_at.py`) is now **experimental / reference-only**
 - Alternative display/runtime experiments (for example `lib/st77916.py`) remain in repo but are not part of the Phase 0 boot path
+- Phase 1 features (PTT/audio/touch) are explicitly deferred behind stabilization soak criteria
+
+## CircuitPython stabilization shell (experimental)
+
+For CircuitPython bring-up/reference work, use `code.py` -> `app_stable.py`.
+
+`app_stable.py` intentionally includes only:
+- boot banner,
+- explicit state transitions (`BOOT -> DISPLAY_OK -> WIFI_OK -> HTTP_OK`),
+- heartbeat logs,
+- WiFi connect/reconnect watchdog checks,
+- optional HTTP ping (`SECRETS["ping_url"]`).
+
+Deferred placeholders for Phase 1 features are isolated in `app_future.py`.
+
+### Soak gate before Phase 1
+
+Phase 1 feature work can begin only after the stabilization shell runs continuously for a target soak duration (recommended minimum: **24 hours** with no unrecovered WiFi/display lockups).
 
 ## Hardware
 

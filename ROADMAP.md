@@ -29,6 +29,17 @@ A portable, round-display voice node for OpenClaw + Home Assistant. Think of it 
 
 ---
 
+
+## Stabilization gate (before Phase 1)
+
+Phase 1 work (PTT/audio/touch) is blocked until the stabilization shell (`app_stable.py`) has completed a continuous soak run for a target duration.
+
+Suggested acceptance target:
+- minimum 24h continuous runtime,
+- no unrecovered WiFi disconnects,
+- heartbeat continues throughout run,
+- optional HTTP ping remains healthy when configured.
+
 ## Phase 1: PTT Widget
 **Goal:** Basic push-to-talk voice interface
 
