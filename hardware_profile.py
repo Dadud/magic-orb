@@ -10,8 +10,8 @@ DISPLAY_CONTROLLER = "ST77916"
 DISPLAY_BUS_TYPE = "QSPI"
 DISPLAY_DRIVER = "lib/st77916.py"
 DISPLAY_DRIVER_STATUS = "phase0-primary"
-BACKUP_DISPLAY_DRIVER = "lib/gc9a01.py"
-BACKUP_DISPLAY_DRIVER_STATUS = "experimental-backup"
+LEGACY_DISPLAY_DRIVER = "lib/gc9a01.py"
+LEGACY_DISPLAY_DRIVER_STATUS = "reference-only"
 
 # Display QSPI profile (Waveshare demo)
 LCD_SCLK = 10
@@ -27,8 +27,12 @@ LCD_BL = 24
 # ESP32 ESP-AT UART profile (project wiring)
 ESP_UART_ID = 0
 ESP_UART_BAUDRATE = 115_200
-ESP_TX = 0  # GP0 -> ESP32 RX
-ESP_RX = 1  # GP1 <- ESP32 TX
+ESP_TX = 26  # GP26 -> ESP32 RX
+ESP_RX = 27  # GP27 <- ESP32 TX
+
+# Auxiliary peripherals present on board
+TOUCH_CONTROLLER = "CST816"
+AUDIO_CODEC = "ES8311"
 
 
 def summary():
