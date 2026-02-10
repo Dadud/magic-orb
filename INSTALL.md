@@ -21,7 +21,7 @@ This guide is intentionally scoped to the **selected Phase 0 runtime: MicroPytho
 
 On device, create `/lib` and copy:
 - `main.py` -> device root
-- `lib/gc9a01.py` -> device `/lib/gc9a01.py`
+- `lib/st77916.py` -> device `/lib/st77916.py`
 
 > Phase 0 stabilization path uses only the files above for boot.
 
@@ -55,6 +55,6 @@ Legacy scripts (`quick_test.py`, `simple_test.py`, `all_in_one_test.py`) are ref
 
 ### ESP-AT not responding
 - Verify wiring:
-  - RP2350 GP0 -> ESP32 RX
-  - RP2350 GP1 <- ESP32 TX
+  - RP2350 GP26 -> ESP32 RX
+  - RP2350 GP27 <- ESP32 TX
 - Confirm ESP32 has ESP-AT firmware.
