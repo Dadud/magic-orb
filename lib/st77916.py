@@ -22,10 +22,9 @@ LCD_BL   = 24
 @asm_pio(sideset_init=PIO.OUT_LOW, out_init=(PIO.OUT_LOW, PIO.OUT_LOW, PIO.OUT_LOW, PIO.OUT_LOW),
          out_shiftdir=PIO.SHIFT_RIGHT, autopull=True, pull_thresh=8)
 def qspi_prog():
-    side(0)    # Clock low
-    out(pins, 4)  [1]  # Output 4 bits
-    side(1)    # Clock high
-    nop()      [1]
+    # Toggle SCLK using sideset while shifting 4-bit nibbles on D0..D3.
+    out(pins, 4).side(0)  [1]  # Clock low, output nibble
+    nop().side(1)         [1]  # Clock high
 
 class ST77916(framebuf.FrameBuffer):
     """ST77916 360x360 round display with QSPI interface"""
