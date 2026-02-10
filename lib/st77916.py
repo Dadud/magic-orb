@@ -71,7 +71,7 @@ class ST77916(framebuf.FrameBuffer):
         self._init_display()
         self.bl(1)  # Turn on backlight
 
-    def _write_cmd(self, cmd, data=None, delay=0):
+    def _write_cmd(self, cmd, data=None, delay=0, keep_cs=False):
         """Write command and optional data"""
         self.cs(0)
 
@@ -87,7 +87,8 @@ class ST77916(framebuf.FrameBuffer):
             for b in data:
                 self._write_byte_1bit(b)
 
-        self.cs(1)
+        if not keep_cs:
+            self.cs(1)
 
         if delay:
             time.sleep_ms(delay)
@@ -195,11 +196,9 @@ class ST77916(framebuf.FrameBuffer):
     def show(self):
         """Display the framebuffer"""
         self._set_window(0, 0, self.width - 1, self.height - 1)
-        self.cs(0)
 
-        # Write command for memory write (0x2C)
-        # In QSPI mode
-        self._write_cmd(0x2C)
+        # Start memory write (0x2C), but keep CS asserted while streaming pixels.
+        self._write_cmd(0x2C, keep_cs=True)
 
         # Send pixel data
         self._write_bytes_4bit(self.buffer)
