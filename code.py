@@ -1,3 +1,4 @@
+# EXPERIMENTAL (NON-TARGET RUNTIME): CircuitPython prototype kept for reference only.
 #!/usr/bin/env python3
 """
 Magic Orb - RP2350 Voice Node for OpenClaw

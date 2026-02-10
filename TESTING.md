@@ -1,58 +1,59 @@
-# 🔮 Magic Orb - Ready to Test!
+# 🔮 Magic Orb - Phase 0 Testing (MicroPython)
 
-**Status:** Display driver written (GC9A01), ready for hardware testing
+This test guide covers only the selected stabilization runtime: **MicroPython**.
 
-## What's New
+## Test matrix
 
-✅ **GC9A01 Driver Created** - `/workspace/magic-orb/lib/gc9a01.py`
-- Full init sequence for 360x360 round display
-- Color support (RGB565)
-- Text and graphics via framebuf
+1. **Boot smoke test**: `main.py`
+2. **Display test**: `test_display.py`
+3. **Display + ESP-AT test**: `test_complete.py`
 
-✅ **Test Files Ready:**
-- `test_display.py` - Display-only test
-- `test_complete.py` - Display + WiFi test
+## Prerequisites
 
-## Quick Test (Do This Now!)
+- `firmware/firmware.uf2` flashed
+- Device files copied:
+  - `main.py`
+  - `lib/gc9a01.py`
+- For full test flow, also copy:
+  - `test_display.py`
+  - `test_complete.py`
 
-### 1. Flash Firmware (if not done)
-```bash
-# Firmware is at:
-/home/openclaw/.openclaw/workspace/magic-orb/firmware.uf2
+## 1) Boot smoke test (`main.py`)
+
+Reboot the board.
+
+**Expected:**
+- Display initializes
+- ESP-AT UART initializes
+- Status text appears on display
+
+## 2) Display validation (`test_display.py`)
+
+Run `test_display.py` from Thonny.
+
+**Expected:**
+- Color fill sequence renders
+- Text appears on screen
+- Basic shape rendering appears
+
+## 3) WiFi + display validation (`test_complete.py`)
+
+Edit credentials in file:
+
+```python
+WIFI_SSID = "YOUR_WIFI_SSID"
+WIFI_PASS = "YOUR_WIFI_PASSWORD"
 ```
 
-1. Hold BOOT on RP2350
-2. Connect USB
-3. Release BOOT
-4. Copy firmware.uf2 to the drive
-
-### 2. Test Display
-
-Copy `test_display.py` to your device and run it.
+Run `test_complete.py`.
 
 **Expected:**
-- Screen fills with colors (red, green, blue, white, black)
-- Shows "Magic Orb Ready!" text
-- Draws concentric circles
+- Display init passes
+- ESP32 responds to AT command
+- WiFi association succeeds
 
-**If it fails:**
-- Check pin configuration in the file (LCD_DC, LCD_CS, etc.)
-- May need to adjust based on your exact board version
-- Tell me what error you get
+## Current baseline pins (MicroPython tests)
 
-### 3. Test WiFi + Display
-
-Edit `test_complete.py` with your WiFi credentials, then run it.
-
-**Expected:**
-- Display test passes
-- ESP32 responds to AT commands
-- WiFi connects to your network
-- Shows IP address on screen
-
-## Pin Configuration
-
-Current pins in test files (adjust if needed):
 ```python
 LCD_DC   = 8
 LCD_CS   = 9
@@ -62,39 +63,10 @@ LCD_MISO = 12
 LCD_BL   = 13
 LCD_RST  = 15
 
-ESP_TX   = 0  # GP0 -> ESP32 RX
-ESP_RX   = 1  # GP1 <- ESP32 TX
+ESP_TX   = 0
+ESP_RX   = 1
 ```
 
-## What to Tell Me
+## Deferred runtime note
 
-1. **Did display light up?**
-2. **What colors showed?**
-3. **Did WiFi connect?**
-4. **Any error messages?**
-
-If pins are wrong, tell me what Waveshare examples show and I'll fix it.
-
-## Files in `/workspace/magic-orb/`
-
-```
-lib/
-  ├── gc9a01.py      ← NEW: Round display driver
-  ├── wifi_at.py     ← ESP-AT WiFi driver
-  └── display.py     ← UI helpers
-
-test_display.py      ← Test display only
-test_complete.py     ← Test display + WiFi
-firmware.uf2         ← MicroPython firmware
-```
-
-## Next After Testing
-
-Once hardware is confirmed working:
-1. Create `secrets.py` with config
-2. Build PTT interface
-3. Connect to OpenClaw
-
----
-
-*Status as of 2026-02-10 12:40 UTC*
+CircuitPython files are kept in-repo for reference but are not part of Phase 0 stabilization or acceptance testing.

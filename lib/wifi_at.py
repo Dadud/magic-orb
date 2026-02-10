@@ -1,3 +1,4 @@
+# EXPERIMENTAL (NON-TARGET RUNTIME): CircuitPython ESP-AT driver kept for reference only.
 # ESP-AT WiFi driver for RP2350 + ESP32-WROOM
 import busio
 import time
