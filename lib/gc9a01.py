@@ -1,4 +1,5 @@
 # GC9A01 Round Display Driver for RP2350-Touch-LCD-1.85C
+# Backup/experimental driver (not Phase 0 primary profile)
 # 360x360 round display
 import machine
 import time

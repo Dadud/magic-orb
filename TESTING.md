@@ -55,13 +55,21 @@ Run `test_complete.py`.
 ## Current baseline pins (MicroPython tests)
 
 ```python
-LCD_DC   = 8
-LCD_CS   = 9
-LCD_SCK  = 10
-LCD_MOSI = 11
-LCD_MISO = 12
-LCD_BL   = 13
-LCD_RST  = 15
+BOARD_NAME = "Waveshare RP2350-Touch-LCD-1.85C"
+DISPLAY_CONTROLLER = "ST77916"
+DISPLAY_BUS_TYPE = "QSPI"
+DISPLAY_DRIVER = "lib/st77916.py"
+BACKUP_DISPLAY_DRIVER = "lib/gc9a01.py"
+
+LCD_SCLK = 10
+LCD_D0   = 11
+LCD_D1   = 12
+LCD_D2   = 13
+LCD_D3   = 14
+LCD_CS   = 15
+LCD_RST  = 16
+LCD_TE   = 17
+LCD_BL   = 24
 
 ESP_TX   = 0
 ESP_RX   = 1
