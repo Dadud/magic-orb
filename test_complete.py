@@ -1,17 +1,9 @@
-# MAGIC ORB - COMPLETE HARDWARE TEST
-# Tests: Display + WiFi (ESP-AT) + Basic UI
+"""Stage C canonical validation: combined display + WiFi HTTP."""
 from machine import Pin, UART
-import time
 import sys
+import time
 
 from hardware_profile import (
-    BACKUP_DISPLAY_DRIVER,
-    BACKUP_DISPLAY_DRIVER_STATUS,
-    BOARD_NAME,
-    DISPLAY_BUS_TYPE,
-    DISPLAY_CONTROLLER,
-    DISPLAY_DRIVER,
-    DISPLAY_DRIVER_STATUS,
     ESP_RX,
     ESP_TX,
     ESP_UART_BAUDRATE,
@@ -21,122 +13,104 @@ from hardware_profile import (
 sys.path.append('/lib')
 from st77916 import ST77916
 
-print("\n🔮 Magic Orb - Complete Hardware Test")
-print("=" * 40)
-print(f"Board profile: {BOARD_NAME}")
-print(f"Primary display driver: {DISPLAY_DRIVER} ({DISPLAY_DRIVER_STATUS})")
-print(f"Backup display driver: {BACKUP_DISPLAY_DRIVER} ({BACKUP_DISPLAY_DRIVER_STATUS})")
-print(f"Display bus/controller: {DISPLAY_BUS_TYPE} / {DISPLAY_CONTROLLER}")
-
 # ============================================================
-# CONFIG - Edit these!
+# CONFIG - Edit these before running Stage C
 # ============================================================
 WIFI_SSID = "YOUR_WIFI_SSID"
 WIFI_PASS = "YOUR_WIFI_PASSWORD"
+HTTP_HOST = "neverssl.com"
+HTTP_PATH = "/"
 
-# ============================================================
-# TEST 1: Display
-# ============================================================
-print("\n📺 TEST 1: Display...")
+print("🔮 Magic Orb - Stage C (Display + WiFi HTTP)")
+print("=" * 49)
+print("Canonical script: test_complete.py")
+print("Prerequisite: Stage A and Stage B must PASS before Stage C.")
+print("Failure signature (UART): no AT response")
+print("Failure signature (Display): display init timeout")
+print("Failure signature (HTTP): HTTP status parse fail")
 
-try:
-    display = ST77916()
+print("\n[Stage C] Initializing display...")
+start_ms = time.ticks_ms()
+display = ST77916()
+elapsed_ms = time.ticks_diff(time.ticks_ms(), start_ms)
+if elapsed_ms > 5000:
+    raise RuntimeError(f"display init timeout: {elapsed_ms}ms")
 
-    print("  ✓ Display initialized")
+print(f"✓ Display initialized in {elapsed_ms}ms")
+display.fill(display.BLACK)
+display.text("Magic Orb", 130, 140, display.CYAN)
+display.text("Stage C running", 110, 170, display.WHITE)
+display.show()
 
-    # Show startup screen
-    display.fill(display.BLACK)
-    display.text("Magic Orb", 130, 160, display.CYAN)
-    display.text("Testing...", 140, 190, display.WHITE)
-    display.show()
-    time.sleep(1)
+uart = UART(ESP_UART_ID, baudrate=ESP_UART_BAUDRATE, tx=Pin(ESP_TX), rx=Pin(ESP_RX))
 
-    for color, name in [(display.RED, "RED"), (display.BLUE, "BLUE"), (display.GREEN, "GREEN")]:
-        display.fill(color)
-        display.show()
-        time.sleep(0.3)
 
-    display.fill(display.BLACK)
-    display.show()
+def at_cmd(cmd, timeout_ms=2000):
+    while uart.any():
+        uart.read()
+    uart.write((cmd + "\r\n").encode())
+    time.sleep_ms(timeout_ms)
+    response = b""
+    while uart.any():
+        response += uart.read()
+    return response.decode("utf-8", errors="ignore")
 
-    display_ok = True
 
-except Exception as e:
-    print(f"  ✗ Display failed: {e}")
-    print("  Check hardware_profile.py and display wiring/profile")
-    display_ok = False
-    display = None
+print("\n[Stage C] Probing AT channel...")
+resp = at_cmd("AT", 600)
+if "OK" not in resp:
+    raise RuntimeError(f"no AT response: {resp[:120] if resp else 'empty'}")
+print("✓ ESP-AT responded")
 
-# ============================================================
-# TEST 2: WiFi (ESP-AT)
-# ============================================================
-print("\n📶 TEST 2: WiFi (ESP-AT)...")
+print("\n[Stage C] Connecting WiFi...")
+if "OK" not in at_cmd("AT+CWMODE=1", 1000):
+    raise RuntimeError("no AT response while setting station mode")
+resp = at_cmd(f'AT+CWJAP="{WIFI_SSID}","{WIFI_PASS}"', 15000)
+if "OK" not in resp and "WIFI GOT IP" not in resp:
+    raise RuntimeError(f"wifi join fail: {resp[:160] if resp else 'empty'}")
+print("✓ WiFi joined")
 
-try:
-    uart = UART(ESP_UART_ID, baudrate=ESP_UART_BAUDRATE, tx=Pin(ESP_TX), rx=Pin(ESP_RX))
+print("\n[Stage C] Running HTTP GET over TCP...")
+if "OK" not in at_cmd("AT+CIPMUX=0", 800):
+    raise RuntimeError("tcp setup fail: CIPMUX")
+resp = at_cmd(f'AT+CIPSTART="TCP","{HTTP_HOST}",80', 7000)
+if "OK" not in resp and "CONNECT" not in resp:
+    raise RuntimeError(f"tcp connect fail: {resp[:160] if resp else 'empty'}")
 
-    def at_cmd(cmd, timeout_ms=2000):
-        uart.write((cmd + "\r\n").encode())
-        time.sleep_ms(timeout_ms)
-        response = b""
-        while uart.any():
-            response += uart.read()
-        return response.decode('utf-8', errors='ignore')
+request = (
+    f"GET {HTTP_PATH} HTTP/1.1\r\n"
+    f"Host: {HTTP_HOST}\r\n"
+    "Connection: close\r\n"
+    "\r\n"
+)
+resp = at_cmd(f"AT+CIPSEND={len(request)}", 2000)
+if ">" not in resp and "OK" not in resp:
+    raise RuntimeError(f"send prompt fail: {resp[:160] if resp else 'empty'}")
 
-    resp = at_cmd("AT", 500)
-    if "OK" in resp:
-        print("  ✓ ESP32 responding")
-        at_cmd("AT+CWMODE=1", 500)
-        print(f"  Connecting to {WIFI_SSID}...")
-        resp = at_cmd(f'AT+CWJAP="{WIFI_SSID}","{WIFI_PASS}"', 15000)
+uart.write(request.encode())
+time.sleep_ms(3500)
+raw = b""
+while uart.any():
+    raw += uart.read()
+http_blob = raw.decode("utf-8", errors="ignore")
 
-        if "OK" in resp or "WIFI GOT IP" in resp:
-            print("  ✓ WiFi connected!")
-            resp = at_cmd("AT+CIFSR", 1000)
-            if "STAIP" in resp:
-                for line in resp.split('\n'):
-                    if 'STAIP' in line:
-                        print(f"  {line.strip()}")
-            wifi_ok = True
-        else:
-            print(f"  ✗ WiFi failed: {resp[:100]}")
-            wifi_ok = False
-    else:
-        print(f"  ✗ ESP32 not responding: {resp[:50] if resp else 'empty'}")
-        print(f"  Check wiring: ESP TX -> GP{ESP_RX}, ESP RX -> GP{ESP_TX}")
-        wifi_ok = False
+status_code = None
+for line in http_blob.split("\r\n"):
+    if line.startswith("HTTP/1.1") or line.startswith("HTTP/1.0"):
+        parts = line.split(" ")
+        if len(parts) >= 2 and parts[1].isdigit():
+            status_code = int(parts[1])
+        break
 
-except Exception as e:
-    print(f"  ✗ WiFi test failed: {e}")
-    wifi_ok = False
+if status_code is None:
+    raise RuntimeError(f"HTTP status parse fail: {http_blob[:200] if http_blob else 'empty'}")
 
-print("\n" + "=" * 40)
-print("TEST RESULTS:")
-print(f"  Display: {'✓ PASS' if display_ok else '✗ FAIL'}")
-print(f"  WiFi:    {'✓ PASS' if wifi_ok else '✗ FAIL'}")
+print(f"✓ HTTP status parsed: {status_code}")
+at_cmd("AT+CIPCLOSE", 800)
 
-if display_ok and display:
-    display.fill(display.BLACK)
-    display.text("Test Results", 130, 140, display.CYAN)
-    display.text(f"Display: {'OK' if display_ok else 'FAIL'}", 130, 170, display.WHITE)
-    display.text(f"WiFi: {'OK' if wifi_ok else 'FAIL'}", 130, 190, display.WHITE)
-    display.show()
+display.fill(display.BLACK)
+display.text("Stage C PASS", 120, 160, display.GREEN)
+display.text(f"HTTP {status_code}", 130, 190, display.WHITE)
+display.show()
 
-print("\n" + "=" * 40)
-
-if display_ok and wifi_ok:
-    print("✓ All tests passed!")
-    print("\nNext steps:")
-    print("1. Create secrets.py with WiFi + gateway config")
-    print("2. Run code.py for PTT functionality")
-else:
-    print("✗ Some tests failed")
-    print("\nTroubleshooting:")
-    if not display_ok:
-        print("- Confirm display controller/bus are ST77916/QSPI")
-        print("- Check hardware_profile.py + QSPI pin mapping")
-    if not wifi_ok:
-        print("- Check ESP32 UART wiring")
-        print("- Verify ESP32 has ESP-AT firmware")
-
-print("\nDone!")
+print("\n✓ Stage C PASS")

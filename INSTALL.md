@@ -32,12 +32,16 @@ On device, create `/lib` and copy:
   - display init OK
   - ESP-AT UART init OK
 
-## Optional: copy test files for validation
+## Optional: copy canonical staged test files
 
-- `test_display.py`
-- `test_complete.py`
+- `test_display.py` (Stage A: display-only)
+- `test_esp_at_uart.py` (Stage B: ESP-AT UART-only)
+- `test_complete.py` (Stage C: display + WiFi HTTP)
 
-These are still MicroPython and are documented in `TESTING.md`.
+Run order is mandatory: Stage A -> Stage B -> Stage C.
+Details and expected-output checklists are in `TESTING.md`.
+
+Legacy scripts (`quick_test.py`, `simple_test.py`, `all_in_one_test.py`) are reference-only and not part of acceptance testing.
 
 ## Troubleshooting
 

@@ -1,56 +1,119 @@
 # 🔮 Magic Orb - Phase 0 Testing (MicroPython)
 
-This test guide covers only the selected stabilization runtime: **MicroPython**.
+This guide defines a strict 3-stage validation path for the selected stabilization runtime: **MicroPython**.
 
-## Test matrix
+## Stage definitions (canonical)
 
-1. **Boot smoke test**: `main.py`
-2. **Display test**: `test_display.py`
-3. **Display + ESP-AT test**: `test_complete.py`
+- **Stage A — display-only**
+  - Canonical script: `test_display.py`
+  - Purpose: verify ST77916 init + basic rendering only.
+- **Stage B — ESP-AT UART-only**
+  - Canonical script: `test_esp_at_uart.py`
+  - Purpose: verify UART link + AT command responsiveness only.
+- **Stage C — combined display + WiFi HTTP**
+  - Canonical script: `test_complete.py`
+  - Purpose: verify integrated display + ESP-AT WiFi + HTTP status parsing.
+
+> **Execution gate:** Stage A and Stage B must both PASS before running Stage C.
 
 ## Prerequisites
 
-- `firmware/firmware.uf2` flashed
+- `firmware/firmware.uf2` flashed.
 - Device files copied:
   - `main.py`
   - `lib/gc9a01.py`
-- For full test flow, also copy:
-  - `test_display.py`
-  - `test_complete.py`
+- For staged validation, also copy:
+  - `test_display.py` (Stage A)
+  - `test_esp_at_uart.py` (Stage B)
+  - `test_complete.py` (Stage C)
 
-## 1) Boot smoke test (`main.py`)
+---
 
-Reboot the board.
+## Stage A checklist (`test_display.py`)
 
-**Expected:**
-- Display initializes
-- ESP-AT UART initializes
-- Status text appears on display
+Run from Thonny:
 
-## 2) Display validation (`test_display.py`)
+```python
+import test_display
+```
 
-Run `test_display.py` from Thonny.
+Expected output/behavior checklist:
 
-**Expected:**
-- Color fill sequence renders
-- Text appears on screen
-- Basic shape rendering appears
+- Banner shows `Stage A (Display-Only)`.
+- Display initializes in <= 5000ms.
+- Color sweep renders (RED, GREEN, BLUE, WHITE, BLACK).
+- Text/geometry render without lockup.
+- Terminal ends with `✓ Stage A PASS`.
 
-## 3) WiFi + display validation (`test_complete.py`)
+Failure signatures:
 
-Edit credentials in file:
+- `display init timeout`
+- Any exception during render loop
+
+---
+
+## Stage B checklist (`test_esp_at_uart.py`)
+
+Run from Thonny:
+
+```python
+import test_esp_at_uart
+```
+
+Expected output/behavior checklist:
+
+- Banner shows `Stage B (ESP-AT UART-Only)`.
+- `AT` probe returns `OK`.
+- `AT+GMR` returns `OK`.
+- `AT+CWMODE=1` returns `OK`.
+- Terminal ends with `✓ Stage B PASS`.
+
+Failure signatures:
+
+- `no AT response`
+- firmware query failure
+- station mode set failure
+
+---
+
+## Stage C checklist (`test_complete.py`)
+
+> **Do not run Stage C unless Stage A and Stage B both passed in this session.**
+
+Before run, edit credentials in file:
 
 ```python
 WIFI_SSID = "YOUR_WIFI_SSID"
 WIFI_PASS = "YOUR_WIFI_PASSWORD"
 ```
 
-Run `test_complete.py`.
+Run from Thonny:
 
-**Expected:**
-- Display init passes
-- ESP32 responds to AT command
-- WiFi association succeeds
+```python
+import test_complete
+```
+
+Expected output/behavior checklist:
+
+- Banner shows `Stage C (Display + WiFi HTTP)`.
+- Display initializes in <= 5000ms.
+- `AT` probe succeeds.
+- WiFi association succeeds (`OK` or `WIFI GOT IP`).
+- HTTP transaction completes and status line is parsed.
+- Terminal ends with `✓ Stage C PASS`.
+
+Failure signatures:
+
+- `display init timeout`
+- `no AT response`
+- `HTTP status parse fail`
+
+---
+
+## Canonical-vs-legacy note
+
+To reduce operator confusion, only the three stage scripts above are primary validation artifacts.
+Legacy exploratory scripts (`quick_test.py`, `simple_test.py`, `all_in_one_test.py`) are retained for reference only and are **not** part of acceptance testing.
 
 ## Current baseline pins (MicroPython tests)
 
