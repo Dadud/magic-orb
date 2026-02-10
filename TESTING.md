@@ -21,7 +21,7 @@ This guide defines a strict 3-stage validation path for the selected stabilizati
 - `firmware/firmware.uf2` flashed.
 - Device files copied:
   - `main.py`
-  - `lib/gc9a01.py`
+  - `lib/st77916.py`
 - For staged validation, also copy:
   - `test_display.py` (Stage A)
   - `test_esp_at_uart.py` (Stage B)
@@ -133,8 +133,6 @@ BOARD_NAME = "Waveshare RP2350-Touch-LCD-1.85C"
 DISPLAY_CONTROLLER = "ST77916"
 DISPLAY_BUS_TYPE = "QSPI"
 DISPLAY_DRIVER = "lib/st77916.py"
-BACKUP_DISPLAY_DRIVER = "lib/gc9a01.py"
-
 LCD_SCLK = 10
 LCD_D0   = 11
 LCD_D1   = 12
@@ -145,8 +143,11 @@ LCD_RST  = 16
 LCD_TE   = 17
 LCD_BL   = 24
 
-ESP_TX   = 0
-ESP_RX   = 1
+ESP_TX   = 26
+ESP_RX   = 27
+
+TOUCH_CONTROLLER = "CST816"
+AUDIO_CODEC = "ES8311"
 ```
 
 ## Deferred runtime note
