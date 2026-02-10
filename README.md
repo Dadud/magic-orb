@@ -19,7 +19,7 @@ A portable, round-display voice node for OpenClaw + Home Assistant.
 
 ### Deferred (kept, but not stabilized in Phase 0)
 - CircuitPython runtime path (`code.py`, `code_minimal.py`, `lib/display.py`, `lib/wifi_at.py`) is now **experimental / reference-only**
-- Alternative display/runtime experiments (for example `lib/st77916.py`) remain in repo but are not part of the Phase 0 boot path
+- Legacy/alternative display drivers (for example `lib/gc9a01.py`) are retained for reference but are not part of the canonical Phase 0 boot path
 - Phase 1 features (PTT/audio/touch) are explicitly deferred behind stabilization soak criteria
 
 ## CircuitPython stabilization shell (experimental)
@@ -44,13 +44,15 @@ Phase 1 feature work can begin only after the stabilization shell runs continuou
 - **Waveshare RP2350-Touch-LCD-1.85C** - Round 360x360 touchscreen
 - **ESP32-WROOM** - WiFi via ESP-AT (UART)
 - **Built-in:** Mic, speaker, 3.7V battery (BOX version)
+- **Touch controller:** CST816
+- **Audio codec:** ES8311
 
 ## Canonical Phase 0 boot path
 
 1. Flash `firmware/firmware.uf2` (MicroPython).
 2. Copy these files to the board:
    - `main.py` (root)
-   - `lib/gc9a01.py` (`/lib`)
+   - `lib/st77916.py` (`/lib`)
 3. Reboot.
 
 `main.py` intentionally does only:
@@ -71,8 +73,8 @@ Display:
   LCD_RST  = GP15
 
 ESP32 (UART0):
-  TX = GP0  -> ESP32 RX
-  RX = GP1  <- ESP32 TX
+  TX = GP26 -> ESP32 RX
+  RX = GP27 <- ESP32 TX
 ```
 
 
@@ -83,6 +85,10 @@ ESP32 (UART0):
 3. Run **Stage C** (`test_complete.py`) only after A and B pass.
 
 Failure signatures are documented in `TESTING.md` and mirrored in script banners for operator clarity.
+
+## Phase 0 exit report
+
+- Latest report: [`docs/phase0-exit.md`](docs/phase0-exit.md)
 
 ## Project Structure
 
@@ -95,8 +101,8 @@ magic-orb/
 ├── firmware/
 │   └── firmware.uf2    # MicroPython firmware
 ├── lib/
-│   ├── gc9a01.py       # MicroPython display driver
-│   ├── st77916.py      # Experimental display/runtime path
+│   ├── st77916.py      # Canonical MicroPython ST77916 display driver
+│   ├── gc9a01.py       # Legacy reference driver (non-canonical)
 │   ├── wifi_at.py      # Experimental CircuitPython ESP-AT path
 │   └── display.py      # Experimental CircuitPython UI helpers
 ├── test_display.py     # Stage A canonical test (display-only)

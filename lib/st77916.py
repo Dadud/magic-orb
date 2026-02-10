@@ -22,10 +22,9 @@ LCD_BL   = 24
 @asm_pio(sideset_init=PIO.OUT_LOW, out_init=(PIO.OUT_LOW, PIO.OUT_LOW, PIO.OUT_LOW, PIO.OUT_LOW),
          out_shiftdir=PIO.SHIFT_RIGHT, autopull=True, pull_thresh=8)
 def qspi_prog():
-    side(0)    # Clock low
-    out(pins, 4)  [1]  # Output 4 bits
-    side(1)    # Clock high
-    nop()      [1]
+    # Toggle SCLK using sideset while shifting 4-bit nibbles on D0..D3.
+    out(pins, 4).side(0)  [1]  # Clock low, output nibble
+    nop().side(1)         [1]  # Clock high
 
 class ST77916(framebuf.FrameBuffer):
     """ST77916 360x360 round display with QSPI interface"""
@@ -72,7 +71,7 @@ class ST77916(framebuf.FrameBuffer):
         self._init_display()
         self.bl(1)  # Turn on backlight
 
-    def _write_cmd(self, cmd, data=None, delay=0):
+    def _write_cmd(self, cmd, data=None, delay=0, keep_cs=False):
         """Write command and optional data"""
         self.cs(0)
 
@@ -88,7 +87,8 @@ class ST77916(framebuf.FrameBuffer):
             for b in data:
                 self._write_byte_1bit(b)
 
-        self.cs(1)
+        if not keep_cs:
+            self.cs(1)
 
         if delay:
             time.sleep_ms(delay)
@@ -196,11 +196,9 @@ class ST77916(framebuf.FrameBuffer):
     def show(self):
         """Display the framebuffer"""
         self._set_window(0, 0, self.width - 1, self.height - 1)
-        self.cs(0)
 
-        # Write command for memory write (0x2C)
-        # In QSPI mode
-        self._write_cmd(0x2C)
+        # Start memory write (0x2C), but keep CS asserted while streaming pixels.
+        self._write_cmd(0x2C, keep_cs=True)
 
         # Send pixel data
         self._write_bytes_4bit(self.buffer)
