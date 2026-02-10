@@ -43,21 +43,31 @@ A portable, round-display voice node for OpenClaw + Home Assistant.
                               └──────────┘
 ```
 
-## Pin Configuration
+## Hardware Profile (Authoritative for Phase 0)
 
-From Waveshare RP2350-Touch-LCD-1.85C demo:
+Phase 0 uses a **single tested profile only** defined in `hardware_profile.py`.
 
-**Display (QSPI):**
-- SCLK = GP10
-- D0-D3 = GP11-14 (4-bit data)
-- CS = GP15
-- RST = GP16
-- TE = GP17
-- BL = GP24
+- Board: `Waveshare RP2350-Touch-LCD-1.85C`
+- Display controller: `ST77916`
+- Bus type: `QSPI`
+- Primary display driver: `lib/st77916.py`
+- Backup/experimental driver: `lib/gc9a01.py`
 
-**ESP32 (UART0):**
-- TX = GP0 → ESP32 RX
-- RX = GP1 ← ESP32 TX
+**Display pins (QSPI):**
+- `LCD_SCLK = GP10`
+- `LCD_D0 = GP11`
+- `LCD_D1 = GP12`
+- `LCD_D2 = GP13`
+- `LCD_D3 = GP14`
+- `LCD_CS = GP15`
+- `LCD_RST = GP16`
+- `LCD_TE = GP17`
+- `LCD_BL = GP24`
+
+**ESP32 (UART):**
+- `ESP_TX = GP0` → ESP32 RX
+- `ESP_RX = GP1` ← ESP32 TX
+- UART settings: `ESP_UART_ID = 0`, `ESP_UART_BAUDRATE = 115200`
 
 ## Getting Started
 
@@ -85,13 +95,15 @@ See [INSTALL.md](INSTALL.md) for detailed steps.
 magic-orb/
 ├── README.md           # This file
 ├── INSTALL.md          # Installation guide
+├── hardware_profile.py # Authoritative board profile
 ├── ROADMAP.md          # Development plan
 ├── TESTING.md          # Test procedures
 ├── firmware/
 │   ├── firmware.uf2        # MicroPython
 │   └── lcd_touch.uf2       # Waveshare demo (working)
 ├── lib/
-│   ├── st77916.py      # ST77916 QSPI driver
+│   ├── st77916.py      # Phase 0 primary display driver (QSPI)
+│   ├── gc9a01.py       # Backup/experimental display driver
 │   ├── wifi_at.py      # ESP-AT WiFi driver
 │   └── display.py      # UI helpers
 ├── test_display.py     # Display test

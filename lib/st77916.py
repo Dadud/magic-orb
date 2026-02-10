@@ -1,4 +1,5 @@
 # ST77916 QSPI Display Driver for RP2350-Touch-LCD-1.85C
+# Phase 0 primary display driver (authoritative profile uses QSPI + ST77916)
 # Based on Waveshare RP2350-Touch-LCD-1.85C-Demo
 # Uses PIO for 4-wire SPI (QSPI)
 import machine

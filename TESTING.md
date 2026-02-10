@@ -1,13 +1,13 @@
 # 🔮 Magic Orb - Ready to Test!
 
-**Status:** Display driver written (GC9A01), ready for hardware testing
+**Status:** Phase 0 uses ST77916 over QSPI as the primary display path (GC9A01 kept as backup/experimental).
 
 ## What's New
 
-✅ **GC9A01 Driver Created** - `/workspace/magic-orb/lib/gc9a01.py`
-- Full init sequence for 360x360 round display
-- Color support (RGB565)
-- Text and graphics via framebuf
+✅ **ST77916 Driver Selected (Phase 0 Primary)** - `/workspace/magic-orb/lib/st77916.py`
+- Matches Waveshare demo controller/bus (ST77916 over QSPI)
+- QSPI data lines D0-D3 + control pins as in vendor BSP
+- `gc9a01.py` kept only as backup/experimental
 
 ✅ **Test Files Ready:**
 - `test_display.py` - Display-only test
@@ -36,8 +36,7 @@ Copy `test_display.py` to your device and run it.
 - Draws concentric circles
 
 **If it fails:**
-- Check pin configuration in the file (LCD_DC, LCD_CS, etc.)
-- May need to adjust based on your exact board version
+- Confirm `hardware_profile.py` is copied to device root and matches this profile
 - Tell me what error you get
 
 ### 3. Test WiFi + Display
@@ -52,18 +51,29 @@ Edit `test_complete.py` with your WiFi credentials, then run it.
 
 ## Pin Configuration
 
-Current pins in test files (adjust if needed):
+Source of truth: `hardware_profile.py` (**single tested profile only**).
+
 ```python
-LCD_DC   = 8
-LCD_CS   = 9
-LCD_SCK  = 10
-LCD_MOSI = 11
-LCD_MISO = 12
-LCD_BL   = 13
-LCD_RST  = 15
+BOARD_NAME = "Waveshare RP2350-Touch-LCD-1.85C"
+DISPLAY_CONTROLLER = "ST77916"
+DISPLAY_BUS_TYPE = "QSPI"
+DISPLAY_DRIVER = "lib/st77916.py"
+BACKUP_DISPLAY_DRIVER = "lib/gc9a01.py"
+
+LCD_SCLK = 10
+LCD_D0   = 11
+LCD_D1   = 12
+LCD_D2   = 13
+LCD_D3   = 14
+LCD_CS   = 15
+LCD_RST  = 16
+LCD_TE   = 17
+LCD_BL   = 24
 
 ESP_TX   = 0  # GP0 -> ESP32 RX
 ESP_RX   = 1  # GP1 <- ESP32 TX
+ESP_UART_ID = 0
+ESP_UART_BAUDRATE = 115200
 ```
 
 ## What to Tell Me
@@ -73,7 +83,7 @@ ESP_RX   = 1  # GP1 <- ESP32 TX
 3. **Did WiFi connect?**
 4. **Any error messages?**
 
-If pins are wrong, tell me what Waveshare examples show and I'll fix it.
+This repo currently supports one tested board profile for Phase 0.
 
 ## Files in `/workspace/magic-orb/`
 

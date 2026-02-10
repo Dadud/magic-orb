@@ -40,15 +40,18 @@ If not, install drivers: https://www.raspberrypi.com/documentation/microcontroll
 2. Navigate to `magic-orb/` folder on your computer (left side)
 3. Create `lib` folder on the device (right side)
 4. Copy these files:
-   - `lib/st77916.py` → device `lib/`
+   - `lib/st77916.py` → device `lib/` (Phase 0 primary)
+   - `lib/gc9a01.py` → device `lib/` (backup/experimental)
    - `lib/wifi_at.py` → device `lib/`
+   - `hardware_profile.py` → device root
    - `test_display.py` → device root
+   - `test_complete.py` → device root
 
 ## Step 6: Test Display
 
 **In Thonny:**
 1. Open `test_display.py`
-2. Edit pin config if needed (check your board version)
+2. Do not edit pin constants in tests; they are sourced from `hardware_profile.py`
 3. Click Run (F5)
 4. **Expected:** Screen flashes colors, shows text
 
@@ -78,24 +81,29 @@ If not, install drivers: https://www.raspberrypi.com/documentation/microcontroll
 - Hold BOOT + press RESET, release RESET first
 - Re-flash firmware
 
-## Pin Reference
+## Pin Reference (matches `hardware_profile.py`)
 
-From Waveshare demo:
+**Single tested profile only** for Phase 0.
 ```
-Display (QSPI):
-  SCLK = GP10
-  D0   = GP11
-  D1   = GP12
-  D2   = GP13
-  D3   = GP14
-  CS   = GP15
-  RST  = GP16
-  TE   = GP17
-  BL   = GP24
+Display controller: ST77916
+Display bus: QSPI
+Display driver (primary): lib/st77916.py
+Display driver (backup/experimental): lib/gc9a01.py
 
-ESP32 (UART):
-  TX   = GP0  → ESP32 RX
-  RX   = GP1  ← ESP32 TX
+LCD_SCLK = GP10
+LCD_D0   = GP11
+LCD_D1   = GP12
+LCD_D2   = GP13
+LCD_D3   = GP14
+LCD_CS   = GP15
+LCD_RST  = GP16
+LCD_TE   = GP17
+LCD_BL   = GP24
+
+ESP_TX   = GP0  → ESP32 RX
+ESP_RX   = GP1  ← ESP32 TX
+ESP_UART_ID = 0
+ESP_UART_BAUDRATE = 115200
 ```
 
 ## What to Report
