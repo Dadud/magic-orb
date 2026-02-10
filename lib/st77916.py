@@ -71,7 +71,7 @@ class ST77916(framebuf.FrameBuffer):
         self._init_display()
         self.bl(1)  # Turn on backlight
 
-    def _write_cmd(self, cmd, data=None, delay=0):
+    def _write_cmd(self, cmd, data=None, delay=0, keep_cs=False):
         """Write command and optional data"""
         self.cs(0)
 
@@ -87,7 +87,8 @@ class ST77916(framebuf.FrameBuffer):
             for b in data:
                 self._write_byte_1bit(b)
 
-        self.cs(1)
+        if not keep_cs:
+            self.cs(1)
 
         if delay:
             time.sleep_ms(delay)
@@ -196,11 +197,8 @@ class ST77916(framebuf.FrameBuffer):
         """Display the framebuffer"""
         self._set_window(0, 0, self.width - 1, self.height - 1)
 
-        # ST77916 QSPI pixel stream header from Waveshare BSP:
-        # 0x32,0x00,0x2C,0x00 then 4-bit pixel payload while CS stays low.
-        self.cs(0)
-        for b in (0x32, 0x00, 0x2C, 0x00):
-            self._write_byte_1bit(b)
+        # Start memory write (0x2C), but keep CS asserted while streaming pixels.
+        self._write_cmd(0x2C, keep_cs=True)
 
         # Send pixel data over 4-bit bus.
         self._write_bytes_4bit(self.buffer)
